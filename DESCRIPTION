@@ -1,0 +1,14 @@
+Package: famic
+Type: Package
+Title: Extracts data coded using the FAMIC coding scheme
+Version: 0.1.0
+Author: Leonardo De Pascalis
+Maintainer: Leonardo De Pascalis <leonardo.depascalis@liverpool.ac.uk>
+Description: Functions contained in this package are used to read files containing data on mother-infant interactions coded according to the FAMIC coding scheme, and extract and organise data from these files.
+Imports:
+    readxl,
+    stringr
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.2.0
