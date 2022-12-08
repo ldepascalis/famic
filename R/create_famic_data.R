@@ -45,6 +45,25 @@ for (f in 1:length(file_names)) {
 
   raw_data$code <- paste0(c(rep("c", 19), rep("m", 20)), raw_data$code)
 
+  database_data <- suppressMessages(readxl::read_excel(file_paths[f], sheet = "Database", skip = 2))
+  
+  colnames(database_data) <- c("code", "behav", paste0("sec", seq(1:(ncol(database_data) - 2))))
+  
+  database_data <- database_data[!is.na(database_data$code), ]
+  
+  database_data$code <- paste0(c(rep("c", 19), rep("m", 20)), database_data$code)
+  
+  database_data[which(database_data$code == "mA1"):nrow(database_data),3:ncol(database_data)][!(matrix((unlist(gregexpr("First", as.matrix(database_data[which(database_data$code == "mA1"):nrow(database_data),3:ncol(database_data)]))) == 3) %in% TRUE, nrow = nrow(database_data) - which(database_data$code == "mA1") + 1))] <- NA
+  
+  if (length(gsub("[\\(\\)]", "", lapply(regmatches(as.matrix(database_data[which(database_data$code == "mA1"):nrow(database_data),3:ncol(database_data)]), gregexpr("\\(.*?\\)", as.matrix(database_data[which(database_data$code == "mA1"):nrow(database_data),3:ncol(database_data)])))[lengths(regmatches(as.matrix(database_data[which(database_data$code == "mA1"):nrow(database_data),3:ncol(database_data)]), gregexpr("\\(.*?\\)", as.matrix(database_data[which(database_data$code == "mA1"):nrow(database_data),3:ncol(database_data)])))) >0], "[[", 1))) != 
+      length(unique(gsub("[\\(\\)]", "", lapply(regmatches(as.matrix(database_data[which(database_data$code == "mA1"):nrow(database_data),3:ncol(database_data)]), gregexpr("\\(.*?\\)", as.matrix(database_data[which(database_data$code == "mA1"):nrow(database_data),3:ncol(database_data)])))[lengths(regmatches(as.matrix(database_data[which(database_data$code == "mA1"):nrow(database_data),3:ncol(database_data)]), gregexpr("\\(.*?\\)", as.matrix(database_data[which(database_data$code == "mA1"):nrow(database_data),3:ncol(database_data)])))) >0], "[[", 1))))) {
+    stop(paste("The infant behaviour located in cell", 
+               unique(gsub("[\\(\\)]", "", lapply(regmatches(as.matrix(database_data[which(database_data$code == "mA1"):nrow(database_data),3:ncol(database_data)]), gregexpr("\\(.*?\\)", as.matrix(database_data[which(database_data$code == "mA1"):nrow(database_data),3:ncol(database_data)])))[lengths(regmatches(as.matrix(database_data[which(database_data$code == "mA1"):nrow(database_data),3:ncol(database_data)]), gregexpr("\\(.*?\\)", as.matrix(database_data[which(database_data$code == "mA1"):nrow(database_data),3:ncol(database_data)])))) >0], "[[", 1))[duplicated(gsub("[\\(\\)]", "", lapply(regmatches(as.matrix(database_data[which(database_data$code == "mA1"):nrow(database_data),3:ncol(database_data)]), gregexpr("\\(.*?\\)", as.matrix(database_data[which(database_data$code == "mA1"):nrow(database_data),3:ncol(database_data)])))[lengths(regmatches(as.matrix(database_data[which(database_data$code == "mA1"):nrow(database_data),3:ncol(database_data)]), gregexpr("\\(.*?\\)", as.matrix(database_data[which(database_data$code == "mA1"):nrow(database_data),3:ncol(database_data)])))) >0], "[[", 1)))])
+               , "of file",
+               file_names[f],
+               "has multiple responses"))
+  }
+
   interaction_data <- data.frame(sec = seq(1:(ncol(raw_data) - 2)))
 
   for (i in 1:nrow(codes)) {
