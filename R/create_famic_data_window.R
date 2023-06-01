@@ -1,16 +1,17 @@
-#' Create FAMIC database
+#' Create FAMIC window database
 #'
 #' This function searches for .xlsm files in the specified folder (and
 #' optionally sub-folders), and checks whether they are all named in a
 #' ID_WEEKNUMBER_weeks.xlsm format, and whether they contain the appropriate number
 #' of codes. If these checks are passed, the function then extracts all data
-#' from the coded .xlsm files, and organises them in a tibble object.
+#' from the coded .xlsm files, and organises them in a tibble object with
+#' window data.
 #'
 #' @param path Path to the folder containing coded .xlsm files
 #' @param recursive Boolean specifying whether sub-folders should also be searched
 #' @return A dataframe object
 #' @export
-create_famic_data <- function(path, recursive = TRUE) {
+create_famic_data_window <- function(path, recursive = TRUE) {
   
   c_m <- code <- code_codes <- code_names <- e_r <- sec <- NULL
   
@@ -92,6 +93,17 @@ create_famic_data <- function(path, recursive = TRUE) {
     
     for (i in 1:nrow(codes[codes$e_r == "r", ])) {
       
+      interaction_data[, paste0(codes[codes$e_r == "r", ]$code_names[[i]], "w")] <-
+        as.numeric(ifelse(interaction_data[, codes[codes$e_r == "r", ]$code_names[[i]]] == "NA", NA,
+                          ifelse(
+                            grepl(
+                              "-R|-S|-RS",
+                              interaction_data[, codes[codes$e_r == "r", ]$code_names[[i]]]
+                            ), NA,
+                            stringr::str_remove(
+                              interaction_data[, codes[codes$e_r == "r", ]$code_names[[i]]],
+                              ".*-"))))
+      
       interaction_data[, codes[codes$e_r == "r", ]$code_names[[i]]] <-
         ifelse(interaction_data[, codes[codes$e_r == "r", ]$code_names[[i]]] == "NA", NA,
                ifelse(
@@ -113,19 +125,58 @@ create_famic_data <- function(path, recursive = TRUE) {
               interaction_data[, codes[codes$e_r == "r", ]$code_names[[i]]]),
             interaction_data[, codes[codes$e_r == "r", ]$code_names[[i]]], NA)
       }
-      interaction_data <-
-        interaction_data[ ,!(colnames(interaction_data) == codes[codes$e_r == "r", ]$code_names[[i]])]
       
     }
     
-    mother_infant_data <-
-      rbind(mother_infant_data,
-            cbind(data.frame(
-              id = sub("\\_.*", "", file_names[f]),
-              week = as.numeric(sub("\\_.*", "", substring(file_names[f], nchar(sub("\\_.*", "", file_names[f])) + 2))),
-              seconds = nrow(interaction_data)), (data.frame(as.list(sapply(interaction_data[, -1], function(x) sum(!is.na(x))))))))
+    if (sum(interaction_data$ltp, na.rm = TRUE) + sum(interaction_data$mo, na.rm = TRUE) + sum(interaction_data$smile, na.rm = TRUE) + sum(interaction_data$voc, na.rm = TRUE) <= 1) {
+      next
+    }
     
+    window <- interaction_data[,c("sec", "ltp", "mo", "smile", "voc", "d_mir", "d_mirw", "e_mir", "e_mirw", "m_mir", "m_mirw", "vit_s", "vit_sw", "vit_ns", "vit_nsw", "aff_s", "aff_sw", "aff_ns", "aff_nsw", "hyper_mir", "hyper_mirw", "hyper_mar", "hyper_marw", "hypo_mir", "hypo_mirw", "hypo_mar", "hypo_marw", "neg", "negw")]
+    
+    for (i in c("ltp", "mo", "smile", "voc")) {
+      window[, i] <- as.character(window[, i])
+      window[, i] <- ifelse(is.na(window[, i]), NA, paste0(i, window[, i]))
+    }
+    
+    for (i in c("d_mir", "e_mir", "m_mir", "vit_s", "vit_ns", "aff_s", "aff_ns", "hyper_mir", "hyper_mar", "hypo_mir", "hypo_mar", "neg")) {
+      window[, i] <- as.character(window[, i])
+      window[, paste0(i, "w")] <- as.character(window[, paste0(i, "w")])
+      window[, i] <- ifelse(is.na(window[, i]), NA, ifelse(window[, i] == "A2a", "ltp", ifelse(window[, i] == "A2b", "mo", ifelse(window[, i] == "B1", "smile", ifelse(window[, i] == "C1", "voc", NA)))))
+      window[, i] <- ifelse(is.na(window[, i]), NA, paste0(window[, i], window[, paste0(i, "w")]))
+    }
+    
+    window <- window[, c("sec", "ltp", "mo", "smile", "voc", "d_mir", "e_mir", "m_mir", "vit_s", "vit_ns", "aff_s", "aff_ns", "hyper_mir", "hyper_mar", "hypo_mir", "hypo_mar", "neg")]
+    windowsc <- na.omit(data.frame(sec1 = rep(window$sec, 4), sb1 = c(window$ltp, window$mo, window$smile, window$voc)))
+    windowsc <- windowsc[order(windowsc$sec), ]
+    windowsc$sec2 <- c(windowsc$sec1[-1], NA)
+    windowsc$sb2 <- c(windowsc$sb1[-1], NA)
+    windowsc$time <- windowsc$sec2 - windowsc$sec1
+    windowsc <- head(windowsc, -1)
+    windowsm <- na.omit(reshape(window[, -1:-5], dir = "long", varying = names(window[, -1:-5]), 
+                                v.names = "sb1", timevar = "resp_2_sb1", times = names(window[, -1:-5])))[, -3]
+    rownames(windowsm) <- NULL
+    window_final <- merge(x = windowsc, y = windowsm, by = "sb1", all.x = TRUE)
+    window_final[is.na(window_final)] <- "ignored"
+    
+    window_final <- cbind(data.frame(
+                            id = sub("\\_.*", "", file_names[f]),
+                            week = as.numeric(sub("\\_.*", "", substring(file_names[f], nchar(sub("\\_.*", "", file_names[f])) + 2)))),
+                          window_final)
+    
+    mother_infant_data <- rbind(mother_infant_data, window_final)
   }
+  
+  mother_infant_data$resp_2_sb1 <- 
+    ifelse(mother_infant_data$resp_2_sb1 == "ignored", "ignored",
+           ifelse(mother_infant_data$resp_2_sb1 %in% c("d_mir", "e_mir", "m_mir"), "mirroring",
+                  ifelse(mother_infant_data$resp_2_sb1 %in% c("vit_s", "aff_s"), "pos_mark",
+                         ifelse(mother_infant_data$resp_2_sb1 %in% c("vit_ns", "aff_ns"), "neut_mark",
+                                "neg_resp"
+           ))))
+  
+  mother_infant_data <- mother_infant_data[order(mother_infant_data$id, mother_infant_data$week, mother_infant_data$sec1),]
+  rownames(mother_infant_data) <- 1:nrow(mother_infant_data)
   
   return(mother_infant_data)
 }

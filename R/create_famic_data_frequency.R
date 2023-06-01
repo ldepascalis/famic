@@ -56,6 +56,15 @@ for (f in 1:length(file_names)) {
   
   database_data[which(database_data$code == "mA1"):nrow(database_data),3:ncol(database_data)][!(matrix((unlist(gregexpr("First", as.matrix(database_data[which(database_data$code == "mA1"):nrow(database_data),3:ncol(database_data)]))) == 3) %in% TRUE, nrow = nrow(database_data) - which(database_data$code == "mA1") + 1))] <- NA
   
+  for (i in 3:ncol(raw_data)) {
+    if (sum(!is.na(raw_data[1:13, i]), na.rm = TRUE) > 1) {
+      stop(paste("There are multiple infant behaviours at second", i - 2, "of file", file_names[f]))
+    }
+    if (sum(!is.na(raw_data[24:39, i]), na.rm = TRUE) > 1) {
+      stop(paste("There are multiple maternal responses at second", i - 2, "of file", file_names[f]))
+    }
+  }
+  
   if (length(gsub("[\\(\\)]", "", lapply(regmatches(as.matrix(database_data[which(database_data$code == "mA1"):nrow(database_data),3:ncol(database_data)]), gregexpr("\\(.*?\\)", as.matrix(database_data[which(database_data$code == "mA1"):nrow(database_data),3:ncol(database_data)])))[lengths(regmatches(as.matrix(database_data[which(database_data$code == "mA1"):nrow(database_data),3:ncol(database_data)]), gregexpr("\\(.*?\\)", as.matrix(database_data[which(database_data$code == "mA1"):nrow(database_data),3:ncol(database_data)])))) >0], "[[", 1))) != 
       length(unique(gsub("[\\(\\)]", "", lapply(regmatches(as.matrix(database_data[which(database_data$code == "mA1"):nrow(database_data),3:ncol(database_data)]), gregexpr("\\(.*?\\)", as.matrix(database_data[which(database_data$code == "mA1"):nrow(database_data),3:ncol(database_data)])))[lengths(regmatches(as.matrix(database_data[which(database_data$code == "mA1"):nrow(database_data),3:ncol(database_data)]), gregexpr("\\(.*?\\)", as.matrix(database_data[which(database_data$code == "mA1"):nrow(database_data),3:ncol(database_data)])))) >0], "[[", 1))))) {
     stop(paste("The infant behaviour located in cell(s)", 
