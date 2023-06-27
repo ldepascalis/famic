@@ -357,13 +357,13 @@ create_famic_data_event <- function(path, recursive = TRUE) {
       all_events$child_behav,
       levels = c("non_com", "soc_behav", "prespeech", "smile", "voc", "yawn_bio", "negative_affect"),
       labels = c(
-        "Non-Social\nMouth Movements",
-        "Social\nBehaviours",
+        "Non-Social Mouth Movements",
+        "Social Behaviours",
         "Pre-Speech",
         "Smiles",
         "Vocalisations",
-        "Biological\nEvents",
-        "Negative\nAffect"
+        "Biological Events",
+        "Negative Affect"
       )
     )
   all_events$response <-
@@ -378,36 +378,36 @@ create_famic_data_event <- function(path, recursive = TRUE) {
       levels = c("mir", "aff_mark_s", "aff_mark_ns", "neg_resp", "no_resp"),
       labels = c(
         "Mirroring",
-        "Pos. Marking",
+        "Positive Marking",
         "Neutral Marking",
-        "Negative Resp.",
+        "Negative Response",
         "Not Responsed"
       )
     )
   all_events$child_behav <-
-    relevel(all_events$child_behav, "Non-Social\nMouth Movements")
+    relevel(all_events$child_behav, "Non-Social Mouth Movements")
   
   all_events$mir = ifelse(all_events$mat_resp == "Mirroring", "Mirroring", "Non-Mirroring")
-  all_events$aff_mark_s = ifelse(all_events$mat_resp == "Pos. Marking", "Pos. Marking", "Non-Pos. Marking")
+  all_events$aff_mark_s = ifelse(all_events$mat_resp == "Positive Marking", "Positive Marking", "Non-Positive Marking")
   all_events$aff_mark_ns = ifelse(
     all_events$mat_resp == "Neutral Marking",
         "Neutral Marking",
         "Non-Neutral Marking"
       )
   all_events$neg_resp = ifelse(
-    all_events$mat_resp == "Negative Resp.",
-        "Negative Resp.",
-        "Non-Negative Resp."
+    all_events$mat_resp == "Negative Response",
+        "Negative Response",
+        "Non-Negative Response"
       )
   all_events$non_soc_mouth_mov = ifelse(
-    all_events$child_behav == "Non-Social\nMouth Movements",
+    all_events$child_behav == "Non-Social Mouth Movements",
         "Non-Social Mouth Movements",
         "Non-Non-Social Mouth Movements"
       )
   all_events$soc_behav = ifelse(
-    all_events$child_behav == "Social\nBehaviours",
-        "Social\nBehaviours",
-        "Non-Social\nBehaviours"
+    all_events$child_behav == "Social Behaviours",
+        "Social Behaviours",
+        "Non-Social Behaviours"
       )
   all_events$pre_speech = ifelse(all_events$child_behav == "Pre-Speech", "Pre-Speech", "Non-Pre-Speech")
   all_events$smile = ifelse(all_events$child_behav == "Smiles", "Smiles", "Non-Smiles")
@@ -417,12 +417,12 @@ create_famic_data_event <- function(path, recursive = TRUE) {
         "Non-Vocalisations"
       )
   all_events$bio = ifelse(
-    all_events$child_behav == "Biological\nEvents",
+    all_events$child_behav == "Biological Events",
         "Biological Events",
         "Non-Biological Events"
       )
   all_events$negative_affect = ifelse(
-    all_events$child_behav == "Negative\nAffect",
+    all_events$child_behav == "Negative Affect",
         "Negative Affect",
         "Non-Negative Affect"
       )
@@ -430,18 +430,18 @@ create_famic_data_event <- function(path, recursive = TRUE) {
   all_events$mir <- factor(all_events$mir)
   all_events$mir <- relevel(all_events$mir, ref = "Non-Mirroring")
   all_events$aff_mark_s <- factor(all_events$aff_mark_s)
-  all_events$aff_mark_s <- relevel(all_events$aff_mark_s, ref = "Non-Pos. Marking")
+  all_events$aff_mark_s <- relevel(all_events$aff_mark_s, ref = "Non-Positive Marking")
   all_events$aff_mark_ns <- factor(all_events$aff_mark_ns)
   all_events$aff_mark_ns <-
     relevel(all_events$aff_mark_ns, ref = "Non-Neutral Marking")
   all_events$neg_resp <- factor(all_events$neg_resp)
-  all_events$neg_resp <- relevel(all_events$neg_resp, ref = "Non-Negative Resp.")
+  all_events$neg_resp <- relevel(all_events$neg_resp, ref = "Non-Negative Response")
   all_events$non_soc_mouth_mov <- factor(all_events$non_soc_mouth_mov)
   all_events$non_soc_mouth_mov <-
     relevel(all_events$non_soc_mouth_mov, ref = "Non-Non-Social Mouth Movements")
   all_events$soc_behav <- factor(all_events$soc_behav)
   all_events$soc_behav <-
-    relevel(all_events$soc_behav, ref = "Non-Social\nBehaviours")
+    relevel(all_events$soc_behav, ref = "Non-Social Behaviours")
   all_events$pre_speech <- factor(all_events$pre_speech)
   all_events$pre_speech <- relevel(all_events$pre_speech, ref = "Non-Pre-Speech")
   all_events$smile <- factor(all_events$smile)
@@ -503,6 +503,7 @@ create_famic_data_event <- function(path, recursive = TRUE) {
   all_events <-
     cbind(all_events,
           baserate = baserate$value)
+  rownames(all_events) <- 1:nrow(all_events)
   
   return(all_events)
 }
