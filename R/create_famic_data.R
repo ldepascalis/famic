@@ -36,7 +36,7 @@ create_famic_data <- function(path, recursive = TRUE) {
     raw_data <- suppressMessages(readxl::read_excel(file_paths[f], sheet = "Coding", skip = 2))
     
     if (nrow(raw_data) != 40) {
-      stop(paste("The file located at", file_paths[i], "does not contain all codes"))
+      stop(paste("The file located at", file_paths[f], "does not contain all codes"))
     }
     
     colnames(raw_data) <- c("code", "behav", paste0("sec", seq(1:(ncol(raw_data) - 2))))
